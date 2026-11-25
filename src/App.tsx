@@ -7,7 +7,6 @@ import {useTheme} from './theme';
 import Modal from './Modal';
 import ImportPage from './ImportPage';
 import InstallApp from './InstallApp';
-import WidgetLauncher from './WidgetLauncher';
 import SourceTimetable from './SourceTimetable';
 import RepairSchedule from './RepairSchedule';
 import ClassReminders from './ClassReminders';
@@ -153,11 +152,11 @@ export default function App() {
       <span className="nav-caption">WORKSPACE</span>
       <nav className="nav" aria-label="Main navigation">{navigation.map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} onClick={() => setPage(id)}><Icon size={19}/>{label}{page === id && <span className="nav-dot"/>}</button>)}</nav>
       <div className="sidebar-tip"><div className="tip-icon"><Upload size={19}/></div><strong>Already have a schedule?</strong><p>Bring it all together in just a few clicks.</p><button className="secondary" onClick={() => setImportOpen(true)}>Import schedule <ArrowUpRight size={15}/></button></div>
-      <div className="sidebar-footer"><ShieldCheck size={19}/><div><strong>Your space. Your data.</strong><small>Saved locally on this device</small></div><button className="icon-button" aria-label="Open today’s widget" title="Open today’s widget" onClick={() => window.open('?widget=1', '_blank', 'noopener')}><ArrowUpRight size={17}/></button></div>
+      <div className="sidebar-footer"><ShieldCheck size={19}/><div><strong>Your space. Your data.</strong><small>Saved locally on this device</small></div></div>
     </aside>
     <main id="main" className="main" aria-busy={result === undefined}>
       <header className="topbar"><div><span className="eyebrow">YOUR STUDENT WORKSPACE</span><h1>{{today: 'A clear view of your day', weekly: 'Your week, at a glance', manage: 'A home for every class'}[page]}</h1></div>
-        <div className="topbar-actions"><div className="theme-switch" role="group" aria-label="Color theme">{([['light', Sun, 'Light'], ['dark', Moon, 'Dark'], ['system', Monitor, 'System']] as const).map(([value, Icon, label]) => <button key={value} aria-label={`${label} theme`} title={`${label} theme`} aria-pressed={theme === value} className={theme === value ? 'selected' : ''} onClick={() => setTheme(value)}><Icon size={16}/></button>)}</div><button className={`icon-button reminder-button ${reminders.settings.enabled ? 'active' : ''}`} aria-label="Class reminders" title={reminders.settings.enabled ? `Class reminders on · ${reminderLead}` : 'Set up class reminders'} onClick={() => { reminders.clearError(); setRemindersOpen(true); }}>{reminders.settings.enabled ? <BellRing size={17}/> : <Bell size={17}/>}{reminders.settings.enabled && <span className="reminder-dot" aria-hidden="true"/>}</button><WidgetLauncher/><InstallApp/><button className="secondary import-top" onClick={() => setImportOpen(true)}><Upload size={16}/><span>Import</span></button>{addButton}</div>
+        <div className="topbar-actions"><div className="theme-switch" role="group" aria-label="Color theme">{([['light', Sun, 'Light'], ['dark', Moon, 'Dark'], ['system', Monitor, 'System']] as const).map(([value, Icon, label]) => <button key={value} aria-label={`${label} theme`} title={`${label} theme`} aria-pressed={theme === value} className={theme === value ? 'selected' : ''} onClick={() => setTheme(value)}><Icon size={16}/></button>)}</div><button className={`icon-button reminder-button ${reminders.settings.enabled ? 'active' : ''}`} aria-label="Class reminders" title={reminders.settings.enabled ? `Class reminders on · ${reminderLead}` : 'Set up class reminders'} onClick={() => { reminders.clearError(); setRemindersOpen(true); }}>{reminders.settings.enabled ? <BellRing size={17}/> : <Bell size={17}/>}{reminders.settings.enabled && <span className="reminder-dot" aria-hidden="true"/>}</button><InstallApp/><button className="secondary import-top" onClick={() => setImportOpen(true)}><Upload size={16}/><span>Import</span></button>{addButton}</div>
       </header>
       {!online && <div className="offline-banner" role="status"><WifiOff size={15}/><span><strong>Offline mode</strong> Your schedule is saved on this device. Changes stay local.</span></div>}
       {result === undefined ? <PageSkeleton page={page}/> : <div className="page" key={page}>

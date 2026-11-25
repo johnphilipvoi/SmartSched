@@ -165,30 +165,3 @@ export function ImportSkeleton() {
     </div>
   );
 }
-
-export function WidgetSkeleton({embedded = false}: {embedded?: boolean}) {
-  return (
-    <div className={`widget-root ${embedded ? 'widget-embedded' : ''} widget-skeleton`} role="status" aria-live="polite" aria-busy="true">
-      <span className="sr-only">Loading your schedule…</span>
-      <div className="skel-row" aria-hidden="true">
-        <span className="skel-block skel-widget-logo" />
-        <div className="skel-stack skel-stack-tight">
-          {bar('112px', '14px')}
-          {bar('78px', '10px')}
-        </div>
-        {bar('32px', '32px', 'skel-pill skel-push')}
-      </div>
-      <span className="skel-bar" style={{width: '100%', height: '42px', borderRadius: '9px'}} aria-hidden="true" />
-      {bar('54%', '11px')}
-      <div className="skel-widget-cards" aria-hidden="true">
-        {Array.from({length: 3}, (_, i) => (
-          <div className="skel-widget-card" key={i}>
-            {bar('62%', '14px')}
-            {bar('44%', '10px')}
-            {bar('38%', '10px')}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}

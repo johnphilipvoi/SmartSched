@@ -4,16 +4,15 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({plugins:[react(),tailwindcss(),VitePWA({
  registerType:'autoUpdate',
- includeAssets:['icons/icon-192.png','icons/icon-512.png','widget.webmanifest'],
+ includeAssets:['icons/icon-192.png','icons/icon-512.png'],
  manifest:{
   id:'/',name:'SmartSched — Student Schedule',short_name:'SmartSched',
-  description:'Your private class timetable and daily schedule widget',
+   description:'Your private class timetable and daily schedule',
   theme_color:'#087f70',background_color:'#f5f7f9',display:'standalone',
   scope:'/',start_url:'/',categories:['education','productivity'],
   shortcuts:[
    {name:'Today',short_name:'Today',url:'/?view=today'},
-   {name:'Import schedule',short_name:'Import',url:'/?import=1'},
-   {name:'Schedule widget',short_name:'Widget',url:'/?widget=1'}
+    {name:'Import schedule',short_name:'Import',url:'/?import=1'}
   ],
   icons:[
    {src:'/icons/icon-192.png',sizes:'192x192',type:'image/png',purpose:'any maskable'},

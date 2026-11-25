@@ -81,18 +81,6 @@ Photo recognition is best-effort: always review its results. Scanned PDFs are no
 
 The production build includes a service worker and installable PWA metadata. After the initial successful load, the app shell and saved classes are available offline. Use **Install app** in the header: supported browsers show their native installation prompt; other browsers get platform-specific instructions. Deployments require HTTPS outside localhost. OCR assets are runtime-cached after successful downloads where the browser permits caching; first-time OCR still needs internet.
 
-### Mobile and desktop schedule widget
-
-Choose **Widget** in the header:
-
-- **Floating desktop widget:** browsers with Document Picture-in-Picture can display an always-on-top window while the planner remains open.
-- **Compact window:** opens a small separate browser window, including on desktop browsers without floating-window support.
-- **Mobile / installable view:** `/?widget=1` has its own manifest and home-screen entry point. Open this view and choose **Install app**, or add it to the home screen using your browser.
-
-The widget has Today and Up next views, room/instructor details, current-class highlighting, completed-class states, theme synchronization, and reactive local data updates. Its clock refreshes every 15 seconds while open and immediately when the page regains focus. Browser background throttling still applies. Separately installed apps may have isolated storage on some platforms; synchronization only works where the browser shares the same origin storage.
-
-A PWA cannot provide a native iOS/Android home-screen widget, macOS WidgetKit widget, or Windows widget-board integration. Those require native platform packaging; this implementation provides a compact installable web view and supported floating browser windows.
-
 Data is local to this browser and device. Export your calendar before clearing browser storage. Calendar export is for use in calendar applications; this app does not currently restore `.ics` files. Notifications while the app is closed are not supported.
 
 ## Source map
@@ -103,7 +91,7 @@ Data is local to this browser and device. Export your calendar before clearing b
 - `src/Modal.tsx` — keyboard focus, Escape dismissal, and focus restoration
 - `src/notifications.ts`, `src/useClassReminders.ts`, `src/ClassReminders.tsx` — reminder timing, permission handling, and notification panel
 - `public/notification-sw.js` — focuses the planner when a reminder is clicked
-- `src/InstallApp.tsx`, `src/WidgetLauncher.tsx`, `src/WidgetView.tsx` — PWA installation and compact/floating schedule views
+- `src/InstallApp.tsx` — PWA installation
 - `src/import/prepareImage.ts` — table-line detection and OCR image preprocessing
 - `src/ImportPage.tsx`, `src/import/` — extraction, source-style preview, validation, and import
 - `src/SourceTimetable.tsx` — original table layout and preserved row/column geometry
