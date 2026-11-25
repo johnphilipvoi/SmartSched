@@ -1,0 +1,32 @@
+{
+  "name": "smartsched",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "dexie": "^4.0.11",
+    "dexie-react-hooks": "^1.1.7",
+    "exceljs": "^4.4.0",
+    "lucide-react": "^0.468.0",
+    "pdfjs-dist": "^5.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tesseract.js": "^6.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.4.0",
+    "tsx": "^4.23.15",
+    "typescript": "~5.8.0",
+    "vite": "^6.2.0",
+    "vite-plugin-pwa": "^0.21.0"
+  }
+}
