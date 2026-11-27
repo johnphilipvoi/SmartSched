@@ -85,3 +85,79 @@
   .timeline-card span { font-size: 11px; }
   .topbar-actions .add-class { display: none; }
 }
+
+/* Floating mobile dock: reserve the same clearance for content and toasts. */
+@media (max-width: 800px) {
+  html { scroll-padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+  .main {
+    padding-bottom: calc(124px + env(safe-area-inset-bottom, 0px));
+    min-width: 0;
+  }
+  .bottom-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    max-width: 460px;
+    margin-inline: auto;
+    padding: 7px;
+    gap: 5px;
+    border: 1px solid var(--stroke-strong);
+    border-radius: 24px;
+    background: var(--surface);
+    box-shadow: 0 12px 36px #102e2724, 0 2px 8px #102e2710;
+  }
+  .bottom-nav button {
+    justify-content: center;
+    min-width: 0;
+    min-height: 58px;
+    padding: 7px 4px;
+    gap: 5px;
+    border-radius: 17px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .bottom-nav button.active { background: var(--accent-soft); color: var(--accent); }
+  .bottom-nav button:focus-visible { outline-offset: -2px; }
+  .bottom-nav .nav-add { background: var(--accent); color: var(--accent-contrast); }
+  .bottom-nav .nav-add:hover { background: var(--accent-2); }
+  .bottom-nav .nav-add-icon { width: auto; height: 21px; background: none; color: inherit; box-shadow: none; }
+  .toast-stack { bottom: calc(102px + env(safe-area-inset-bottom, 0px)); }
+  .topbar-actions { flex-wrap: nowrap; }
+  .topbar-actions .install-button,
+  .topbar-actions .import-top,
+  .topbar-actions .reminder-button { width: 44px; height: 44px; min-height: 44px; flex-shrink: 0; }
+  .theme-switch button { min-width: 32px; min-height: 34px; }
+  .welcome { padding: 24px; }
+  .hero-next { width: 100%; }
+  .timetable-panel { padding: 0; overflow: hidden; }
+  .agenda-panel, .free-panel, .manage-panel { min-width: 0; }
+  .timeline-card > div { min-width: 0; }
+  .timeline-card > svg { flex-shrink: 0; }
+}
+@supports (backdrop-filter: blur(16px)) {
+  @media (max-width: 800px) {
+    .bottom-nav { background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(16px); }
+  }
+}
+@media (max-width: 420px) {
+  .welcome h2 { font-size: clamp(27px, 8vw, 33px); }
+  .welcome { padding: 20px; }
+  .hero-actions { gap: 12px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat:nth-child(3) { grid-column: 1 / -1; }
+  .stat:nth-child(3) strong { align-items: baseline; gap: 10px; }
+  .stat:nth-child(3) strong small { width: auto; }
+  .agenda-days { gap: 3px; }
+  .agenda-days button { border-radius: 9px; }
+  .section-heading h2 { font-size: 16px; }
+}
+@media (max-width: 360px) {
+  .topbar-actions { gap: 5px; }
+  .theme-switch { padding: 2px; gap: 0; }
+  .theme-switch button { min-width: 30px; }
+  .bottom-nav { gap: 3px; padding: 6px; border-radius: 22px; }
+}
