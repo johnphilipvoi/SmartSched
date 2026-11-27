@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({plugins:[react(),tailwindcss(),VitePWA({
  registerType:'autoUpdate',
- includeAssets:['icons/icon-192.png','icons/icon-512.png'],
+  includeAssets:['icons/logo.svg','icons/icon-192.png','icons/icon-512.png','icons/icon-maskable-512.png','icons/apple-touch-icon.png'],
  manifest:{
   id:'/',name:'SmartSched — Student Schedule',short_name:'SmartSched',
    description:'Your private class timetable and daily schedule',
@@ -15,8 +15,9 @@ export default defineConfig({plugins:[react(),tailwindcss(),VitePWA({
     {name:'Import schedule',short_name:'Import',url:'/?import=1'}
   ],
   icons:[
-   {src:'/icons/icon-192.png',sizes:'192x192',type:'image/png',purpose:'any maskable'},
-   {src:'/icons/icon-512.png',sizes:'512x512',type:'image/png',purpose:'any maskable'}
+    {src:'/icons/icon-192.png',sizes:'192x192',type:'image/png',purpose:'any'},
+    {src:'/icons/icon-512.png',sizes:'512x512',type:'image/png',purpose:'any'},
+    {src:'/icons/icon-maskable-512.png',sizes:'512x512',type:'image/png',purpose:'maskable'}
   ]
  },
  workbox:{

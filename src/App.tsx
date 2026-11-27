@@ -60,8 +60,9 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [manageDay, setManageDay] = useState(-1);
   const [weekDay, setWeekDay] = useState(() => window.innerWidth <= 800 ? now.getDay() : -1);
-  const [tableView,setTableView]=useState<'source'|'cards'>('source');
+  const [tableView,setTableView]=useState<'source'|'cards'>('cards');
   const [freeDay, setFreeDay] = useState(now.getDay());
+  const [agendaDay, setAgendaDay] = useState(now.getDay());
   const [duration, setDuration] = useState(30);
   const [theme, setTheme] = useTheme();
   const [remindersOpen, setRemindersOpen] = useState(false);
@@ -75,6 +76,8 @@ export default function App() {
   useEffect(() => { window.scrollTo({top: 0}); }, [page]);
   const sorted = [...items].sort((a, b) => weekOrder.indexOf(a.day) - weekOrder.indexOf(b.day) || minute(a.start) - minute(b.start));
   const today = sorted.filter(c => c.day === now.getDay());
+  const agenda = sorted.filter(c => c.day === agendaDay);
+  const agendaIsToday = agendaDay === now.getDay();
   const current = now.getHours() * 60 + now.getMinutes();
   const active = today.find(c => minute(c.start) <= current && minute(c.end) > current);
   const next = items.map(c => ({item: c, offset: (c.day - now.getDay() + 7) % 7}))
@@ -92,7 +95,7 @@ export default function App() {
     window.setTimeout(() => setToasts(old => old.filter(t => t.id !== id)), undo ? 10000 : 4500);
   }
   function open(item?: ClassItem) {
-    setForm(item ? {...item} : {...blank, day: now.getDay() as Weekday});
+    setForm(item ? {...item} : {...blank, day: (page === 'today' ? agendaDay : page === 'weekly' && weekDay >= 0 ? weekDay : page === 'manage' && manageDay >= 0 ? manageDay : now.getDay()) as Weekday});
     setError(''); setEditorOpen(true);
   }
   async function save(event: FormEvent) {
@@ -148,7 +151,7 @@ export default function App() {
   return <div className="app">
     <a className="skip-link" href="#main">Skip to content</a>
     <aside className="sidebar">
-      <a className="brand" href="./"><div className="brand-icon"><CalendarDays size={23}/></div><div><b>SmartSched<span>.</span></b><small>A little more organized.</small></div></a>
+      <a className="brand" href="./"><img className="brand-mark" src="/icons/logo.svg" width="44" height="44" alt=""/><div><b>SmartSched<span>.</span></b><small>Make room for your day.</small></div></a>
       <span className="nav-caption">WORKSPACE</span>
       <nav className="nav" aria-label="Main navigation">{navigation.map(([id, label, Icon]) => <button key={id} className={page === id ? 'active' : ''} aria-current={page === id ? 'page' : undefined} onClick={() => setPage(id)}><Icon size={19}/>{label}{page === id && <span className="nav-dot"/>}</button>)}</nav>
       <div className="sidebar-tip"><div className="tip-icon"><Upload size={19}/></div><strong>Already have a schedule?</strong><p>Bring it all together in just a few clicks.</p><button className="secondary" onClick={() => setImportOpen(true)}>Import schedule <ArrowUpRight size={15}/></button></div>
@@ -162,7 +165,7 @@ export default function App() {
       {result === undefined ? <PageSkeleton page={page}/> : <div className="page" key={page}>
       {page === 'today' && <>
         <RepairSchedule items={items}/>
-        <section className="welcome"><div className="welcome-content"><span className="hero-date"><span className="status-pulse"/>{now.toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric'})}</span><h2>A little planning.<br/>A lot more peace of mind.</h2><p>Your classes, your time, your rhythm. Let’s make room for what matters.</p><button className="hero-cta" onClick={() => setPage('weekly')}>See my week <ArrowRight size={17}/></button></div>
+        <section className="welcome"><div className="welcome-content"><span className="hero-date"><span className="status-pulse"/>{now.toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric'})}</span><h2>Your time.<br/><span>A little more in sync.</span></h2><p>{items.length ? `${count(today.filter(c => minute(c.end) > current).length, 'class', 'classes')} left today. A clear plan for whatever comes next.` : 'Turn your timetable into a calmer week. Start with a schedule you have, or add your first class.'}</p><div className="hero-actions"><button className="hero-cta" onClick={() => items.length ? setPage('weekly') : setImportOpen(true)}>{items.length ? 'Explore my week' : 'Import my schedule'} <ArrowRight size={17}/></button>{!items.length && <button className="link" onClick={() => open()}>Add manually <Plus size={15}/></button>}</div></div>
           <div className="hero-next"><span className="eyebrow"><span className="status-pulse"/>{active ? 'HAPPENING NOW' : 'UP NEXT'}</span>{active || next ? <><h3>{(active ?? next.item).subject}</h3><p><Clock3 size={15}/>{pretty((active ?? next.item).start)} – {pretty((active ?? next.item).end)}</p><p><MapPin size={15}/>{(active ?? next.item).room || 'Room not set'}</p><div className="hero-next-footer"><span>{active ? 'You’re right on time.' : next.offset === 0 ? 'Later today' : next.offset === 1 ? 'Tomorrow' : days[next.item.day]}</span><button className="icon-button" aria-label="Edit upcoming class" onClick={() => open(active ?? next.item)}><ArrowUpRight size={18}/></button></div></> : <><h3>Your next chapter starts here.</h3><p>Add a class or import your timetable to get going.</p><button className="link" onClick={() => open()}>Add your first class <ArrowRight size={16}/></button></>}</div>
         </section>
         <div className="stats">
@@ -170,13 +173,14 @@ export default function App() {
           <div className="stat"><div><span>Weekly sessions</span><strong>{items.length}<small>Across {count(new Set(items.map(c => c.day)).size, 'day')}</small></strong></div><div className="stat-icon violet"><BookOpen size={21}/></div></div>
           <div className="stat"><div><span>Weekly class time</span><strong>{Number(hours.toFixed(1))}<small>hours of learning</small></strong></div><div className="stat-icon amber"><Clock3 size={21}/></div></div>
         </div>
-        <div className="dashboard-columns"><section className="panel agenda-panel"><div className="section-heading"><div><span className="eyebrow">ONE THING AT A TIME</span><h2>Today’s agenda <span className="count-badge">{today.length}</span></h2></div><button className="link" onClick={() => setPage('weekly')}>Full week <ArrowUpRight size={16}/></button></div>
-          {today.length ? today.map(c => {
-            const live = minute(c.start) <= current && minute(c.end) > current;
-            const done = minute(c.end) <= current;
+        <div className="dashboard-columns"><section className="panel agenda-panel"><div className="section-heading"><div><span className="eyebrow">YOUR WEEK, ONE DAY AT A TIME</span><h2>{agendaIsToday ? 'Today’s agenda' : `${days[agendaDay]}’s agenda`} <span className="count-badge">{agenda.length}</span></h2></div><button className="link" onClick={() => open()}>Add class <Plus size={16}/></button></div>
+          <div className="agenda-days" role="group" aria-label="Choose agenda day">{weekOrder.map(d => <button key={d} aria-pressed={agendaDay === d} aria-label={`${days[d]}, ${count(items.filter(c => c.day === d).length, 'class', 'classes')}`} className={`${agendaDay === d ? 'selected' : ''} ${d === now.getDay() ? 'today' : ''}`} onClick={() => {setAgendaDay(d); setFreeDay(d);}}><span>{days[d].slice(0, 3)}</span><strong>{items.filter(c => c.day === d).length}</strong><span className="day-indicator" aria-hidden="true"/></button>)}</div>
+          {agenda.length ? agenda.map(c => {
+            const live = agendaIsToday && minute(c.start) <= current && minute(c.end) > current;
+            const done = agendaIsToday && minute(c.end) <= current;
             return <div className={`timeline ${live ? 'timeline-active' : ''} ${done ? 'timeline-done' : ''}`} key={c.id}><div className="timeline-time">{pretty(c.start)}<small>{pretty(c.end)}</small></div><button className="timeline-card" style={{borderLeftColor: c.color}} onClick={() => open(c)}><div><strong>{c.subject}</strong><span><MapPin size={13}/>{c.room || 'Room not set'}{c.instructor && ` · ${c.instructor}`}</span></div>{live ? <span className="now-pill">Live</span> : done ? <Check size={17}/> : <ArrowUpRight size={17}/>}</button></div>;
-          }) : <div className="empty agenda-empty"><div className="empty-icon"><Coffee size={28}/></div><h3>{items.length ? 'A little breathing room.' : 'Let’s shape your week.'}</h3><p>{items.length ? 'No classes today. Enjoy the space to study, recharge, or do your own thing.' : 'Add your first class, or import your existing schedule. We’ll take care of the overview.'}</p><button className="secondary" onClick={() => items.length ? setPage('weekly') : setImportOpen(true)}>{items.length ? 'Explore your week' : 'Import a schedule'}<ArrowRight size={16}/></button></div>}
-          {today.length > 0 && today.every(c => minute(c.end) <= current) && <p className="agenda-note"><Check size={15}/> All classes finished. You’ve earned a break.</p>}
+          }) : <div className="empty agenda-empty"><div className="empty-icon"><Coffee size={28}/></div><h3>{items.length ? 'A little breathing room.' : 'Let’s shape your week.'}</h3><p>{items.length ? `No classes ${agendaIsToday ? 'today' : `on ${days[agendaDay]}`}. Make time to study, recharge, or do your own thing.` : 'Import a photo, PDF, or spreadsheet of your timetable, then review your classes before saving.'}</p><button className="secondary" onClick={() => items.length ? open() : setImportOpen(true)}>{items.length ? `Add a ${days[agendaDay]} class` : 'Import a schedule'}<ArrowRight size={16}/></button></div>}
+          {agendaIsToday && today.length > 0 && today.every(c => minute(c.end) <= current) && <p className="agenda-note"><Check size={15}/> All classes finished. You’ve earned a break.</p>}
         </section>
         <section className="panel free-panel"><div className="section-heading"><div><span className="eyebrow">MAKE TIME FOR YOU</span><h2><Coffee size={19}/> Free-time finder</h2></div><span className="new-badge">NEW</span></div><p className="section-description">Find a quiet window for studying, lunch, or a well-earned break.</p>
           <div className="free-controls"><label>Day<select value={freeDay} onChange={e => setFreeDay(Number(e.target.value))}>{weekOrder.map(d => <option key={d} value={d}>{days[d]}</option>)}</select></label><label>At least<select value={duration} onChange={e => setDuration(Number(e.target.value))}><option value={30}>30 minutes</option><option value={60}>1 hour</option><option value={90}>1½ hours</option><option value={120}>2 hours</option></select></label></div>
