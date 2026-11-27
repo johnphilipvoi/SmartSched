@@ -1,6 +1,6 @@
 import {pretty, type ClassItem} from './database';
 
-export type ReminderSettings = {enabled: boolean; leadMinutes: number};
+export type ReminderSettings = {enabled: boolean; leadMinutes: number; sound: boolean; vibrate: boolean};
 export type ReminderPermission = NotificationPermission | 'unsupported';
 export type ReminderLog = Record<string, number>;
 export type DueReminder = {item: ClassItem; key: string; startAt: number; startsIn: number};
@@ -10,13 +10,13 @@ const SETTINGS_KEY = 'smartsched-reminders';
 const LOG_KEY = 'smartsched-reminder-log';
 const AFTER_START_MS = 2 * 60_000;
 const LOG_RETENTION_MS = 8 * 24 * 60 * 60_000;
-const DEFAULT_SETTINGS: ReminderSettings = {enabled: false, leadMinutes: 10};
+const DEFAULT_SETTINGS: ReminderSettings = {enabled: false, leadMinutes: 10, sound: true, vibrate: true};
 
 export function loadReminderSettings(): ReminderSettings {
   try {
     const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? 'null') as Partial<ReminderSettings> | null;
     if (raw && typeof raw.enabled === 'boolean' && typeof raw.leadMinutes === 'number' && (REMINDER_LEAD_OPTIONS as readonly number[]).includes(raw.leadMinutes)) {
-      return {enabled: raw.enabled, leadMinutes: raw.leadMinutes};
+      return {enabled: raw.enabled, leadMinutes: raw.leadMinutes, sound: typeof raw.sound === 'boolean' ? raw.sound : true, vibrate: typeof raw.vibrate === 'boolean' ? raw.vibrate : true};
     }
   } catch {}
   return {...DEFAULT_SETTINGS};
@@ -84,39 +84,87 @@ export function reminderBody(item: ClassItem) {
   return `${pretty(item.start)} – ${pretty(item.end)}${item.room ? ` · ${item.room}` : ''}${item.instructor ? ` · ${item.instructor}` : ''}`;
 }
 
-async function showReminder(title: string, options: NotificationOptions): Promise<boolean> {
+let audio: AudioContext | undefined;
+const VIBRATION = [200, 100, 200];
+
+// Must be called directly from a user gesture; autoplay rules apply after reload.
+export function prepareReminderAudio() {
+  try {
+    audio ??= new AudioContext();
+    if (audio.state === 'suspended') void audio.resume().catch(() => {});
+  } catch {}
+}
+
+function playReminderFeedback(settings: ReminderSettings) {
+  if (settings.vibrate && typeof navigator.vibrate === 'function') {
+    try { navigator.vibrate(VIBRATION); } catch {}
+  }
+  if (!settings.sound || !audio || audio.state !== 'running') return;
+  const context = audio;
+  for (const [offset, frequency] of [[0, 660], [0.24, 880]]) {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const start = context.currentTime + offset;
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.18, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(start);
+    oscillator.stop(start + 0.32);
+    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+  }
+}
+
+export function reminderAlertOptions(settings: ReminderSettings, inAppSound: boolean): NotificationOptions & {vibrate?: number[]} {
+  // The Notifications API forbids vibration alongside silent:true.
+  if (inAppSound || (!settings.sound && !settings.vibrate)) return {silent: true};
+  return {silent: false, vibrate: settings.vibrate ? VIBRATION : []};
+}
+
+async function showReminder(title: string, options: NotificationOptions, settings: ReminderSettings): Promise<boolean> {
   if (typeof Notification === 'undefined') return false;
+  const inAppSound = document.visibilityState === 'visible' && settings.sound && audio?.state === 'running';
+  const alertOptions = {...options, ...reminderAlertOptions(settings, inAppSound)};
+  const feedback = () => {
+    if (inAppSound) {
+      try { playReminderFeedback(settings); } catch {}
+    }
+  };
   try {
     if ('serviceWorker' in navigator) {
       const registration = await navigator.serviceWorker.getRegistration();
       if (registration) {
-        await registration.showNotification(title, options);
+        await registration.showNotification(title, alertOptions);
+        feedback();
         return true;
       }
     }
   } catch {}
   try {
-    const notification = new Notification(title, options);
+    const notification = new Notification(title, alertOptions);
+    feedback();
     notification.onclick = () => { window.focus(); notification.close(); };
     return true;
   } catch { return false; }
 }
 
-export function showClassReminder(reminder: DueReminder) {
+export function showClassReminder(reminder: DueReminder, settings: ReminderSettings) {
   return showReminder(reminderTitle(reminder.item, reminder.startsIn), {
     body: reminderBody(reminder.item),
     tag: reminder.key,
     icon: '/icons/icon-192.png',
     badge: '/icons/icon-192.png',
     data: {url: '/?view=today'}
-  });
+  }, settings);
 }
 
-export function showTestReminder() {
+export function showTestReminder(settings: ReminderSettings) {
   return showReminder('SmartSched reminders are on', {
     body: 'You’ll get one reminder before each class while SmartSched is open.',
     tag: 'smartsched-test',
     icon: '/icons/icon-192.png',
     data: {url: '/'}
-  });
+  }, settings);
 }

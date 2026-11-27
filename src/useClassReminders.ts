@@ -3,6 +3,7 @@ import type {ClassItem} from './database';
 import {
   dueReminders,
   loadReminderSettings,
+  prepareReminderAudio,
   readReminderLog,
   reminderPermission,
   saveReminderSettings,
@@ -19,6 +20,17 @@ export function useClassReminders(items: ClassItem[]) {
   const [error, setError] = useState('');
 
   useEffect(() => { saveReminderSettings(settings); }, [settings]);
+
+  useEffect(() => {
+    if (!settings.enabled || !settings.sound) return;
+    const unlock = () => prepareReminderAudio();
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, [settings.enabled, settings.sound]);
 
   useEffect(() => {
     const sync = () => setPermission(reminderPermission());
@@ -50,7 +62,7 @@ export function useClassReminders(items: ClassItem[]) {
         const due = dueReminders(items, new Date(), settings.leadMinutes, log);
         for (const reminder of due) {
           if (cancelled) return;
-          if (!await showClassReminder(reminder)) {
+          if (!await showClassReminder(reminder, settings)) {
             if (!cancelled) setError('Your browser blocked the reminder. Check its notification settings and try again.');
             return;
           }
@@ -70,9 +82,10 @@ export function useClassReminders(items: ClassItem[]) {
       window.removeEventListener('focus', check);
       document.removeEventListener('visibilitychange', wake);
     };
-  }, [items, settings.enabled, settings.leadMinutes, permission]);
+  }, [items, settings, permission]);
 
   async function enable() {
+    if (settings.sound) prepareReminderAudio();
     setError('');
     if (typeof Notification === 'undefined') {
       setPermission('unsupported');
@@ -104,6 +117,7 @@ export function useClassReminders(items: ClassItem[]) {
   }
 
   async function test() {
+    if (settings.sound) prepareReminderAudio();
     setError('');
     if (typeof Notification === 'undefined') {
       setPermission('unsupported');
@@ -119,8 +133,13 @@ export function useClassReminders(items: ClassItem[]) {
         : 'Notification permission was not granted.');
       return;
     }
-    if (!await showTestReminder()) setError('The test notification could not be shown. Check your browser’s notification settings.');
+    if (!await showTestReminder(settings)) setError('The test notification could not be shown. Check your browser’s notification settings.');
   }
 
-  return {settings, permission, error, enable, disable, setLeadMinutes, test, clearError: () => setError('')};
+  function setFeedback(key: 'sound' | 'vibrate', value: boolean) {
+    if (key === 'sound' && value) prepareReminderAudio();
+    setSettings(old => ({...old, [key]: value}));
+  }
+
+  return {settings, permission, error, enable, disable, setLeadMinutes, setFeedback, test, clearError: () => setError('')};
 }

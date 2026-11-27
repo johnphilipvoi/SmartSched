@@ -213,7 +213,7 @@ export default function App() {
       <div className="editor-actions"><button type="button" className="secondary" disabled={saving} onClick={() => setEditorOpen(false)}>Cancel</button><button className="primary" type="submit" disabled={saving}>{saving ? <span className="spinner"/> : <Check size={17}/>}{saving ? 'Saving…' : 'Save class'}</button></div>
     </form></Modal>}
     {importOpen && <Modal wide label="Import schedule" onClose={() => setImportOpen(false)}><ImportPage onSaved={() => {setPage('weekly'); setWeekDay(window.innerWidth <= 800 ? new Date().getDay() : -1);setTableView('source'); toast('Your schedule is ready.');}} onClose={() => setImportOpen(false)}/></Modal>}
-    {remindersOpen && <ClassReminders settings={reminders.settings} permission={reminders.permission} error={reminders.error} onClose={() => setRemindersOpen(false)} onEnable={reminders.enable} onDisable={reminders.disable} onLeadChange={reminders.setLeadMinutes} onTest={reminders.test}/>}
+    {remindersOpen && <ClassReminders settings={reminders.settings} permission={reminders.permission} error={reminders.error} onClose={() => setRemindersOpen(false)} onEnable={reminders.enable} onDisable={reminders.disable} onLeadChange={reminders.setLeadMinutes} onFeedbackChange={reminders.setFeedback} onTest={reminders.test}/>}
     <div className="toast-stack" aria-live="polite">{toasts.map(t => <div key={t.id} className={`toast toast-${t.kind}`} role="status">
       <span className="toast-icon" aria-hidden="true">{t.kind === 'success' ? <Check size={15}/> : t.kind === 'error' ? <AlertTriangle size={15}/> : <Info size={15}/>}</span>
       <span className="toast-message">{t.message}</span>
